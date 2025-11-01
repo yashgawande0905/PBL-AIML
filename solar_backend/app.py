@@ -3,6 +3,7 @@ from flask_cors import CORS
 import pandas as pd
 import numpy as np
 from sklearn.neighbors import KNeighborsRegressor
+import os
 
 app = Flask(__name__)
 CORS(app)
@@ -11,17 +12,17 @@ CORS(app)
 # ✅ Load Dataset
 # ========================================
 try:
-    df = pd.read_excel("dataset.xlsx")  # Make sure it's in the same folder as this file
+    df = pd.read_excel("dataset.xlsx")  # Make sure it's uploaded beside this file
     print("✅ Dataset loaded successfully.")
 except FileNotFoundError:
-    print("❌ ERROR: 'dataset.xlsx' not found. Place it in the same folder as app.py.")
+    print("❌ ERROR: 'dataset.xlsx' not found. Please upload it to backend folder.")
     df = None
 
 # ========================================
 # ✅ Model Preparation
 # ========================================
 if df is not None:
-    # Map shape to numeric
+    # Map shape strings to numeric codes
     shape_map = {
         'Hexagonal': 0,
         'Circular': 1,
@@ -32,7 +33,7 @@ if df is not None:
 
     df['Shape_num'] = df['Shape'].map(shape_map)
 
-    # Define input and output columns
+    # Define features and targets
     feature_cols = [
         'Shape_num',
         'Intensity of Radiation (I) W/m2',
@@ -48,24 +49,21 @@ if df is not None:
 
     target_cols = ['Qout', 'Qloss', 'Efficiency (%)']
 
-    # Prepare training data
     X = df[feature_cols]
     y = df[target_cols]
 
-    # Train KNN model
     model = KNeighborsRegressor(n_neighbors=3)
     model.fit(X, y)
 
-    # Validation ranges for each column
+    # Store valid input ranges
     validation_ranges = {col: (df[col].min(), df[col].max()) for col in feature_cols[1:]}
-
 else:
     model = None
     validation_ranges = {}
     shape_map = {}
 
 # ========================================
-# ✅ Key Mapping (Frontend → Dataset)
+# ✅ Frontend → Dataset Key Mapping
 # ========================================
 key_map = {
     'solarRadiation': 'Intensity of Radiation (I) W/m2',
@@ -80,7 +78,7 @@ key_map = {
 }
 
 # ========================================
-# ✅ Prediction Route
+# ✅ /predict Route
 # ========================================
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -94,12 +92,12 @@ def predict():
         return jsonify({'error': "No input data received."}), 400
 
     try:
-        # Shape conversion
+        # Convert shape
         shape = shape_map.get(data.get('shape'))
         if shape is None:
-            return jsonify({'error': f"Invalid shape value. Must be one of: {list(shape_map.keys())}"}), 400
+            return jsonify({'error': f"Invalid shape. Must be one of: {list(shape_map.keys())}"}), 400
 
-        # Validate and extract numeric inputs
+        # Collect validated inputs
         input_values = []
         for frontend_key, dataset_key in key_map.items():
             if frontend_key not in data:
@@ -114,14 +112,17 @@ def predict():
                     }), 400
             input_values.append(val)
 
-        # Prepare input array
+        # Predict
         X_input = np.array([[shape] + input_values])
         prediction = model.predict(X_input)[0]
         Qout, Qloss, Efficiency = prediction.tolist()
 
-        # Return prediction
         return jsonify({
-            'predicted_values': [round(Qout, 2), round(Qloss, 2), round(Efficiency, 2)]
+            'predicted_values': {
+                'Qout': round(Qout, 2),
+                'Qloss': round(Qloss, 2),
+                'Efficiency': round(Efficiency, 2)
+            }
         })
 
     except Exception as e:
@@ -130,11 +131,16 @@ def predict():
 
 
 # ========================================
-# ✅ Run Flask Server (Render compatible)
+# ✅ Root Route (For Render Health Check)
+# ========================================
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({"message": "✅ Solar Backend API is Live!"})
+
+
+# ========================================
+# ✅ Run Server (Render-compatible)
 # ========================================
 if __name__ == '__main__':
-    # Run on all interfaces and use Render's PORT env var if available
-    import os
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port)
-
