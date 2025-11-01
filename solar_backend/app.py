@@ -124,6 +124,21 @@ def predict():
     except Exception as e:
         print("❌ Error:", e)
         return jsonify({'error': str(e)}), 400
+    
+    from flask import Flask, request, jsonify, send_from_directory
+import os
+
+app = Flask(__name__, static_folder="dist", static_url_path="")
+# your existing CORS, ML model, and /predict code stay the same
+
+@app.route("/")
+def serve_home():
+    return send_from_directory(app.static_folder, "index.html")
+
+@app.errorhandler(404)
+def not_found(e):
+    return send_from_directory(app.static_folder, "index.html")
+
 
 
 # ========================================
