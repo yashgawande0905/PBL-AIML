@@ -34,11 +34,12 @@ export default function Home() {
 
   const handlePredict = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:5000/predict", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(inputs),
-      });
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/predict`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(inputs),
+});
+
       const data = await res.json();
 
       if (data.predicted_values) {
