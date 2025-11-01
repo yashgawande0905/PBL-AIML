@@ -33,23 +33,37 @@ export default function Home() {
   };
 
   const handlePredict = async () => {
+    const API_URL = import.meta.env.VITE_API_URL;
+
+    console.log("🌐 Sending request to backend:", `${API_URL}/predict`);
+    console.log("📦 Input data:", inputs);
+
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/predict`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(inputs),
-});
+      const res = await fetch(`${API_URL}/predict`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(inputs),
+      });
+
+      if (!res.ok) {
+        console.error("❌ Server responded with status:", res.status);
+        alert("Backend error. Please check your server logs.");
+        return;
+      }
 
       const data = await res.json();
+      console.log("✅ Backend response:", data);
 
       if (data.predicted_values) {
         const [Qout, Qloss, Efficiency] = data.predicted_values;
         setOutputs({ Qout, Qloss, Efficiency });
       } else if (data.error) {
-        alert(data.error);
+        alert(`Error: ${data.error}`);
+      } else {
+        alert("Unexpected response format from backend!");
       }
     } catch (err) {
-      console.error("Prediction error:", err);
+      console.error("⚠️ Prediction error:", err);
       alert("Prediction failed! Check your backend or input values.");
     }
   };
