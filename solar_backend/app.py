@@ -130,7 +130,11 @@ def predict():
 
 
 # ========================================
-# ✅ Run Flask Server
+# ✅ Run Flask Server (Render compatible)
 # ========================================
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Run on all interfaces and use Render's PORT env var if available
+    import os
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)
+
