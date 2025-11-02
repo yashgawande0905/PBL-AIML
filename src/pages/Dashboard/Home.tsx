@@ -1,45 +1,44 @@
 import { useState } from "react";
+import PageMeta from "../../components/common/PageMeta";
 import EcommerceMetrics from "../../components/ecommerce/EcommerceMetrics";
 import MonthlySalesChart from "../../components/ecommerce/MonthlySalesChart";
 import StatisticsChart from "../../components/ecommerce/StatisticsChart";
-import PageMeta from "../../components/common/PageMeta";
 
 export default function Home() {
   const [inputs, setInputs] = useState({
     shape: "Hexagonal",
-    solarRadiation: 711, // W/m²
-    collectorArea: 1.1,  // m²
-    massFlowRate: 0.02,  // kg/s
-    velocity: 0.5,       // m/s
-    inletTemp: 27,       // °C
-    outletTemp: 67,      // °C
-    ambientTemp: 28,     // °C
-    nusselt: 10,         // Nu
-    distance: 0.16       // m
+    solarRadiation: 711,
+    collectorArea: 1.1,
+    massFlowRate: 0.02,
+    velocity: 0.5,
+    inletTemp: 27,
+    outletTemp: 67,
+    ambientTemp: 28,
+    nusselt: 10,
+    distance: 0.16,
   });
 
   const [outputs, setOutputs] = useState({
     Qout: 0,
     Qloss: 0,
-    Efficiency: 0
+    Efficiency: 0,
   });
 
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setInputs({
-      ...inputs,
-      [name]: name === "shape" ? value : parseFloat(value),
-    });
-  };
+const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const { name, value } = e.target;
+  setInputs((prev) => ({
+    ...prev,
+    [name]: name === "shape" ? value : parseFloat(value),
+  }));
+};
+
 
   const handlePredict = async () => {
     const API_URL = "https://pbl-aiml-2aq3.onrender.com/predict";
-    console.log("🌐 Sending request to:", API_URL);
-    console.log("📦 Input data:", inputs);
-
     setLoading(true);
+
     try {
       const res = await fetch(API_URL, {
         method: "POST",
@@ -48,33 +47,35 @@ export default function Home() {
       });
 
       const text = await res.text();
-      console.log("🔍 Raw response:", text);
-
-      if (!res.ok) {
-        // Try to parse possible backend error message
-        try {
-          const errData = JSON.parse(text);
-          alert(`❌ Backend Error: ${errData.error || "Unknown error"}`);
-        } catch {
-          alert("❌ Backend returned an error or invalid response.");
-        }
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        alert("⚠️ Backend returned invalid JSON response.");
         return;
       }
 
-      const data = JSON.parse(text);
-      console.log("✅ Backend response:", data);
+      if (!res.ok) {
+        alert(`❌ ${data.error || "Backend error occurred."}`);
+        return;
+      }
 
-      if (data.predicted_values) {
-        const [Qout, Qloss, Efficiency] = data.predicted_values;
-        setOutputs({ Qout, Qloss, Efficiency });
-        alert(`✅ Prediction Successful!\n\nQout: ${Qout}\nQloss: ${Qloss}\nEfficiency: ${Efficiency}%`);
-      } else if (data.error) {
-        alert(`⚠️ Error: ${data.error}`);
+      const predicted = data.predicted_values;
+      if (predicted) {
+        setOutputs({
+          Qout: predicted["Qout"],
+          Qloss: predicted["Qloss"],
+          Efficiency: predicted["Efficiency(%)"],
+        });
+
+        alert(
+          `✅ Prediction Successful!\n\nQout: ${predicted.Qout}\nQloss: ${predicted.Qloss}\nEfficiency: ${predicted["Efficiency(%)"]}%`
+        );
       } else {
-        alert("⚠️ Unexpected response format from backend!");
+        alert("⚠️ Unexpected response format from backend.");
       }
     } catch (err) {
-      console.error("⚠️ Prediction error:", err);
+      console.error("Prediction error:", err);
       alert("⚠️ Prediction failed! Please check your network or backend.");
     } finally {
       setLoading(false);
@@ -87,7 +88,6 @@ export default function Home() {
         title="Solar Thermal Performance Dashboard"
         description="Dashboard visualizing solar collector performance metrics and efficiency trends."
       />
-
       <div className="p-6 space-y-6">
         <div className="flex justify-center">
           <div className="w-full md:w-10/12 lg:w-8/12">
@@ -152,7 +152,9 @@ export default function Home() {
                 onClick={handlePredict}
                 disabled={loading}
                 className={`mt-6 w-3/4 mx-auto block py-2 rounded-lg transition text-white ${
-                  loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                  loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
                 }`}
               >
                 {loading ? "Predicting..." : "Predict Performance"}
