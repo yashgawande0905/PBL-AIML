@@ -24,6 +24,8 @@ export default function Home() {
     Efficiency: 0
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setInputs({
@@ -33,39 +35,49 @@ export default function Home() {
   };
 
   const handlePredict = async () => {
-    // ✅ Backend URL (Render)
-    const API_URL = "https://pbl-aiml-2aq3.onrender.com";
-
-    console.log("🌐 Sending request to:", `${API_URL}/predict`);
+    const API_URL = "https://pbl-aiml-2aq3.onrender.com/predict";
+    console.log("🌐 Sending request to:", API_URL);
     console.log("📦 Input data:", inputs);
 
+    setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/predict`, {
+      const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(inputs),
       });
 
+      const text = await res.text();
+      console.log("🔍 Raw response:", text);
+
       if (!res.ok) {
-        console.error("❌ Server responded with:", res.status);
-        alert("Backend error. Please check your server logs.");
+        // Try to parse possible backend error message
+        try {
+          const errData = JSON.parse(text);
+          alert(`❌ Backend Error: ${errData.error || "Unknown error"}`);
+        } catch {
+          alert("❌ Backend returned an error or invalid response.");
+        }
         return;
       }
 
-      const data = await res.json();
+      const data = JSON.parse(text);
       console.log("✅ Backend response:", data);
 
       if (data.predicted_values) {
         const [Qout, Qloss, Efficiency] = data.predicted_values;
         setOutputs({ Qout, Qloss, Efficiency });
+        alert(`✅ Prediction Successful!\n\nQout: ${Qout}\nQloss: ${Qloss}\nEfficiency: ${Efficiency}%`);
       } else if (data.error) {
-        alert(`Error: ${data.error}`);
+        alert(`⚠️ Error: ${data.error}`);
       } else {
-        alert("Unexpected response format from backend!");
+        alert("⚠️ Unexpected response format from backend!");
       }
     } catch (err) {
       console.error("⚠️ Prediction error:", err);
-      alert("Prediction failed! Check your backend or input values.");
+      alert("⚠️ Prediction failed! Please check your network or backend.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -113,6 +125,8 @@ export default function Home() {
                     <option value="Hexagonal">Hexagonal</option>
                     <option value="Circular">Circular</option>
                     <option value="Triangular">Triangular</option>
+                    <option value="Flat">Flat</option>
+                    <option value="Concentric">Concentric</option>
                   </select>
                 </div>
 
@@ -136,9 +150,12 @@ export default function Home() {
 
               <button
                 onClick={handlePredict}
-                className="mt-6 w-3/4 mx-auto block bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition"
+                disabled={loading}
+                className={`mt-6 w-3/4 mx-auto block py-2 rounded-lg transition text-white ${
+                  loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                }`}
               >
-                Predict Performance
+                {loading ? "Predicting..." : "Predict Performance"}
               </button>
             </div>
           </div>
