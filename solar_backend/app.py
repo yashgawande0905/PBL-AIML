@@ -5,15 +5,9 @@ import numpy as np
 from sklearn.neighbors import KNeighborsRegressor
 import os
 
-# ========================================
-# ✅ Flask App Config
-# ========================================
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # Allow access from frontend (Vercel, phone browsers)
 
-# ========================================
-# ✅ Root Route (API Health Check)
-# ========================================
 @app.route("/")
 def home():
     return jsonify({
@@ -21,9 +15,6 @@ def home():
         "usage": "Send a POST request to /predict with JSON data."
     })
 
-# ========================================
-# ✅ Load Dataset
-# ========================================
 DATASET_PATH = "dataset.xlsx"
 
 try:
@@ -33,9 +24,6 @@ except FileNotFoundError:
     print("❌ ERROR: dataset.xlsx not found.")
     df = None
 
-# ========================================
-# ✅ Model Training
-# ========================================
 if df is not None:
     shape_map = {
         'Hexagonal': 0,
@@ -74,9 +62,6 @@ else:
     validation_ranges = {}
     shape_map = {}
 
-# ========================================
-# ✅ Key Mapping (Frontend → Dataset)
-# ========================================
 key_map = {
     'solarRadiation': 'Intensity of Radiation (I) W/m2',
     'collectorArea': 'Length of plate (L) m',
@@ -89,9 +74,6 @@ key_map = {
     'distance': 'Distance Between Plate and Glass (x) m'
 }
 
-# ========================================
-# ✅ Prediction Endpoint
-# ========================================
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
@@ -102,14 +84,10 @@ def predict():
         if not data:
             return jsonify({"error": "No input data provided."}), 400
 
-        # Shape validation
         shape = shape_map.get(data.get("shape"))
         if shape is None:
-            return jsonify({
-                "error": f"Invalid shape. Choose from {list(shape_map.keys())}"
-            }), 400
+            return jsonify({"error": f"Invalid shape. Choose from {list(shape_map.keys())}"}), 400
 
-        # Convert inputs
         values = []
         for frontend_key, dataset_key in key_map.items():
             val = data.get(frontend_key)
@@ -125,7 +103,6 @@ def predict():
 
             values.append(val)
 
-        # Prediction
         X_input = np.array([[shape] + values])
         pred = model.predict(X_input)[0]
         Qout, Qloss, Efficiency = map(lambda x: round(float(x), 2), pred.tolist())
@@ -143,9 +120,6 @@ def predict():
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 
-# ========================================
-# ✅ Run App
-# ========================================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)

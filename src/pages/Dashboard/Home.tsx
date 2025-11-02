@@ -26,14 +26,13 @@ export default function Home() {
 
   const [loading, setLoading] = useState(false);
 
-const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-  const { name, value } = e.target;
-  setInputs((prev) => ({
-    ...prev,
-    [name]: name === "shape" ? value : parseFloat(value),
-  }));
-};
-
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setInputs((prev) => ({
+      ...prev,
+      [name]: name === "shape" ? value : parseFloat(value),
+    }));
+  };
 
   const handlePredict = async () => {
     const API_URL = "https://pbl-aiml-2aq3.onrender.com/predict";
