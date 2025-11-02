@@ -14,7 +14,7 @@ export default function Home() {
     inletTemp: 27,       // °C
     outletTemp: 67,      // °C
     ambientTemp: 28,     // °C
-    nusselt: 10,         // Nu number
+    nusselt: 10,         // Nu
     distance: 0.16       // m
   });
 
@@ -33,9 +33,10 @@ export default function Home() {
   };
 
   const handlePredict = async () => {
-    const API_URL = import.meta.env.VITE_API_URL;
+    // ✅ Backend URL (Render)
+    const API_URL = "https://pbl-aiml-2aq3.onrender.com";
 
-    console.log("🌐 Sending request to backend:", `${API_URL}/predict`);
+    console.log("🌐 Sending request to:", `${API_URL}/predict`);
     console.log("📦 Input data:", inputs);
 
     try {
@@ -46,7 +47,7 @@ export default function Home() {
       });
 
       if (!res.ok) {
-        console.error("❌ Server responded with status:", res.status);
+        console.error("❌ Server responded with:", res.status);
         alert("Backend error. Please check your server logs.");
         return;
       }
@@ -71,7 +72,7 @@ export default function Home() {
   return (
     <>
       <PageMeta
-        title="Solar Thermal Performance Dashboard | Smart Energy Monitor"
+        title="Solar Thermal Performance Dashboard"
         description="Dashboard visualizing solar collector performance metrics and efficiency trends."
       />
 
@@ -126,7 +127,6 @@ export default function Home() {
                         name={key}
                         value={value}
                         onChange={handleChange}
-                        placeholder={`Typical: ${value}`}
                         className="w-3/4 border rounded-lg p-2 bg-gray-50 dark:bg-gray-800 dark:text-white text-center appearance-none"
                       />
                     </div>
