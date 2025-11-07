@@ -42,68 +42,6 @@ Python ≥ 3.9
 
 MongoDB running locally or on cloud (Atlas)
 
-🖥️ Frontend Setup
-# 1️⃣ Navigate to the frontend folder
-cd frontend
-
-# 2️⃣ Install dependencies
-npm install
-# or
-yarn install
-
-# 3️⃣ Create a .env file (if not present) and add:
-VITE_API_BASE_URL=http://localhost:8000
-
-# 4️⃣ Start the development server
-npm run dev
-# or
-yarn dev
-
-
-The frontend will start on 👉 http://localhost:5173
-
-⚙️ Backend Setup
-# 1️⃣ Navigate to the backend folder
-cd backend
-
-# 2️⃣ Create a virtual environment
-python -m venv .venv
-
-# 3️⃣ Activate the environment
-# On Windows:
-.venv\Scripts\activate
-# On macOS/Linux:
-source .venv/bin/activate
-
-# 4️⃣ Install dependencies
-pip install -r requirements.txt
-
-# 5️⃣ Start the backend server
-uvicorn main:app --reload
-
-
-The backend will run on 👉 http://localhost:8000
-
-🔗 Connecting Frontend & Backend
-
-Make sure the backend is running.
-
-In the frontend .env file, set:
-
-VITE_API_BASE_URL=http://localhost:8000
-
-
-Restart the frontend dev server.
-
-🧱 Build for Production
-# Build frontend for deployment
-cd frontend
-npm run build
-
-# Start FastAPI backend for production
-cd ../backend
-uvicorn main:app --host 0.0.0.0 --port 8000
-
 🚀 Deployment Options
 Component	Recommended Platform
 Frontend	Vercel, Netlify, GitHub Pages
