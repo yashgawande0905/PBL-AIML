@@ -26,7 +26,9 @@ export default function Home() {
 
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setInputs((prev) => ({
       ...prev,
@@ -87,23 +89,28 @@ export default function Home() {
         title="Solar Thermal Performance Dashboard"
         description="Dashboard visualizing solar collector performance metrics and efficiency trends."
       />
+
       <div className="p-6 space-y-6">
+        {/* ===== Metrics Section ===== */}
         <div className="flex justify-center">
           <div className="w-full md:w-10/12 lg:w-8/12">
             <EcommerceMetrics data={outputs} />
           </div>
         </div>
 
+        {/* ===== Charts & Input Section ===== */}
         <div className="grid grid-cols-12 gap-6">
+          {/* Charts Section */}
           <div className="col-span-12 xl:col-span-8 space-y-6">
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-4">
-              <MonthlySalesChart />
+              <MonthlySalesChart data={outputs} />
             </div>
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-4">
-              <StatisticsChart />
+              <StatisticsChart data={outputs} />
             </div>
           </div>
 
+          {/* Input Form Section */}
           <div className="col-span-12 xl:col-span-4 flex justify-center">
             <div className="w-11/12 lg:w-10/12 bg-white dark:bg-gray-900 rounded-2xl shadow-md p-6 pr-8">
               <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white text-center">
@@ -111,6 +118,7 @@ export default function Home() {
               </h2>
 
               <div className="space-y-4 max-h-[600px] overflow-y-auto">
+                {/* Shape Selector */}
                 <div className="flex flex-col items-center text-center">
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
                     Shape
@@ -124,11 +132,10 @@ export default function Home() {
                     <option value="Hexagonal">Hexagonal</option>
                     <option value="Circular">Circular</option>
                     <option value="Triangular">Triangular</option>
-                    <option value="Flat">Flat</option>
-                    <option value="Concentric">Concentric</option>
-                  </select>
+                    </select>
                 </div>
 
+                {/* Dynamic numeric inputs */}
                 {Object.entries(inputs).map(([key, value]) =>
                   key !== "shape" ? (
                     <div key={key} className="flex flex-col items-center text-center">
